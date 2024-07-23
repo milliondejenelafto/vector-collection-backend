@@ -16,7 +16,7 @@ router.get('/google/callback', passport.authenticate('google', { failureRedirect
   // Log user data to the console
   console.log('User logged in:', req.user);
   // Redirect to the home page with user data
-  res.redirect(`http://localhost:8000?user=${encodeURIComponent(JSON.stringify(req.user))}`);
+  res.redirect(`http://vector-collection-backend.vercel.app?user=${encodeURIComponent(JSON.stringify(req.user))}`);
 });
 
 // Logout
@@ -30,7 +30,6 @@ router.get('/logout', (req, res, next) => {
     });
   });
 });
-
 
 // Registration
 router.post('/register', [
@@ -99,17 +98,6 @@ router.post('/upload', multer.single('image'), async (req, res) => {
     user.image = result.secure_url;
     await user.save();
     res.json({ imageUrl: result.secure_url });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Server error' });
-  }
-});
-
-// Test route
-router.get('/', async (req, res) => {
-  try {
-    const message = "Hello from the server!";
-    res.json({ message });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Server error' });

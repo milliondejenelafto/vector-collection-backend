@@ -6,6 +6,7 @@ const dotenv = require('dotenv');
 const cors = require('cors'); // Import cors
 const connectDB = require('./config/db');
 const authRoutes = require('./routes/auth');
+const appRoutes = require('./routes/app'); // Import the main routes
 
 dotenv.config();
 
@@ -20,7 +21,7 @@ app.use(express.urlencoded({ extended: true }));
 
 // CORS Middleware
 app.use(cors({
-  origin: 'http://localhost:8000', // Allow requests from this origin
+  origin: 'http://vector-collection-backend.vercel.app', // Allow requests from this origin
   credentials: true // Allow credentials (cookies, authorization headers, etc.)
 }));
 
@@ -37,6 +38,7 @@ app.use(passport.session());
 
 // Routes
 app.use('/auth', authRoutes);
+app.use('/', appRoutes); // Add this line to use the main routes
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
