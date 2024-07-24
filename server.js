@@ -3,10 +3,10 @@ const mongoose = require('mongoose');
 const passport = require('passport');
 const session = require('express-session');
 const dotenv = require('dotenv');
-const cors = require('cors'); // Import cors
+const cors = require('cors');
 const connectDB = require('./config/db');
 const authRoutes = require('./routes/auth');
-const appRoutes = require('./routes/app'); // Import the main routes
+const appRoutes = require('./routes/app');
 
 dotenv.config();
 
@@ -19,9 +19,20 @@ connectDB();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// Allowed origins
+const allowedOrigins = ['http://localhost:8000', 'http://vector-collection-backend.vercel.app'];
+
 // CORS Middleware
 app.use(cors({
-  origin: 'http://vector-collection-backend.vercel.app', // Allow requests from this origin
+  origin: function (origin, callback) {
+    // allow requests with no origin (like mobile apps, curl requests)
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.indexOf(origin) === -1) {
+      const msg = 'The CORS policy for this site does not allow access from the specified Origin.';
+      return callback(new Error(msg), false);
+    }
+    return callback(null, true);
+  },
   credentials: true // Allow credentials (cookies, authorization headers, etc.)
 }));
 

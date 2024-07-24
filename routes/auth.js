@@ -16,7 +16,16 @@ router.get('/google/callback', passport.authenticate('google', { failureRedirect
   // Log user data to the console
   console.log('User logged in:', req.user);
   // Redirect to the home page with user data
-  res.redirect(`http://vector-collection-backend.vercel.app?user=${encodeURIComponent(JSON.stringify(req.user))}`);
+  res.redirect(`http://localhost:8000?user=${encodeURIComponent(JSON.stringify(req.user))}`);
+});
+
+// Check authentication status
+router.get('/check-auth', (req, res) => {
+  if (req.isAuthenticated()) {
+    res.status(200).json({ isAuthenticated: true, user: req.user });
+  } else {
+    res.status(401).json({ isAuthenticated: false });
+  }
 });
 
 // Logout
