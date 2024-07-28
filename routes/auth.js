@@ -3,8 +3,10 @@ const passport = require('passport');
 const bcrypt = require('bcryptjs');
 const { check, validationResult } = require('express-validator');
 const User = require('../models/User');
-const multer = require('../middleware/multer');
-const cloudinary = require('../config/cloudinary');
+const Vector = require('../models/Vector');
+const upload = require('../middleware/multer'); // Ensure multer middleware is correctly imported
+const { ensureAuthenticated } = require('../middleware/auth'); // Ensure auth middleware is correctly imported
+const cloudinary = require('../config/cloudinary').default;
 require('../config/passport-google')(passport);
 require('../config/passport-local')(passport);
 
@@ -13,9 +15,7 @@ const router = express.Router();
 // Google OAuth
 router.get('/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
 router.get('/google/callback', passport.authenticate('google', { failureRedirect: '/' }), (req, res) => {
-  // Log user data to the console
   console.log('User logged in:', req.user);
-  // Redirect to the home page with user data
   res.redirect(`http://localhost:8000?user=${encodeURIComponent(JSON.stringify(req.user))}`);
 });
 
@@ -34,7 +34,7 @@ router.get('/logout', (req, res, next) => {
     if (err) return next(err);
     req.session.destroy(err => {
       if (err) return next(err);
-      res.clearCookie('connect.sid'); // clear the session cookie
+      res.clearCookie('connect.sid');
       res.status(200).json({ message: 'Logged out successfully' });
     });
   });
@@ -99,16 +99,72 @@ router.post('/login', [
   })(req, res, next);
 });
 
-// Profile picture upload
-router.post('/upload', multer.single('image'), async (req, res) => {
+// Vector upload route
+router.post('/upload-vector', ensureAuthenticated, upload.single('vector'), async (req, res) => {
   try {
-    const result = await cloudinary.uploader.upload(req.file.path);
-    const user = await User.findById(req.user.id);
-    user.image = result.secure_url;
-    await user.save();
-    res.json({ imageUrl: result.secure_url });
+    console.log('File upload initiated.');
+
+    if (!req.isAuthenticated()) {
+      console.log('User not authenticated.');
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    console.log('User authenticated:', req.user);
+    console.log('File information:', req.file);
+    console.log('Request body:', req.body);
+
+    const {
+      title,
+      description,
+      category,
+      subcategory,
+      culture,
+      culturalSignificance,
+      fileFormat,
+      fileSize,
+      dimensions,
+      tags,
+      labels,
+      author,
+      license,
+      usageScenarios,
+      accessibility
+    } = req.body;
+
+    const result = await cloudinary.uploader.upload(req.file.path, {
+      resource_type: 'raw', // Ensure resource type is set correctly
+      folder: 'vectors'
+    });
+
+    console.log('Cloudinary upload result:', result);
+
+    const newVector = new Vector({
+      userId: req.user.id,
+      title,
+      description,
+      fileName: req.file.originalname,
+      fileUrl: result.secure_url,
+      category,
+      subcategory,
+      culture,
+      culturalSignificance,
+      fileFormat,
+      fileSize,
+      dimensions,
+      tags,
+      labels,
+      author,
+      license,
+      usageScenarios,
+      accessibility,
+      status: 'pending'
+    });
+
+    await newVector.save();
+    console.log('Vector saved to database:', newVector);
+    res.status(201).json({ message: 'Vector uploaded successfully', vector: newVector });
   } catch (err) {
-    console.error(err);
+    console.error('Error during file upload:', err.message);
     res.status(500).json({ error: 'Server error' });
   }
 });
