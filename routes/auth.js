@@ -4,11 +4,9 @@ const bcrypt = require('bcryptjs');
 const { check, validationResult } = require('express-validator');
 const User = require('../models/User');
 const Vector = require('../models/Vector');
-const upload = require('../middleware/multer'); // Ensure multer middleware is correctly imported
+// Ensure multer middleware is correctly imported
 const { ensureAuthenticated } = require('../middleware/auth'); // Ensure auth middleware is correctly imported
-const cloudinary = require('../config/cloudinary').default;
-require('../config/passport-google')(passport);
-require('../config/passport-local')(passport);
+
 
 const router = express.Router();
 
@@ -99,8 +97,7 @@ router.post('/login', [
   })(req, res, next);
 });
 
-// Vector upload route
-router.post('/upload-vector', ensureAuthenticated, upload.single('vector'), async (req, res) => {
+router.post('/upload', ensureAuthenticated, async (req, res) => {
   try {
     console.log('File upload initiated.');
 
@@ -108,10 +105,6 @@ router.post('/upload-vector', ensureAuthenticated, upload.single('vector'), asyn
       console.log('User not authenticated.');
       return res.status(401).json({ error: 'Unauthorized' });
     }
-
-    console.log('User authenticated:', req.user);
-    console.log('File information:', req.file);
-    console.log('Request body:', req.body);
 
     const {
       title,
@@ -128,22 +121,17 @@ router.post('/upload-vector', ensureAuthenticated, upload.single('vector'), asyn
       author,
       license,
       usageScenarios,
-      accessibility
+      accessibility,
+      fileUrl, // Receiving secure_url from frontend
+      fileName, // Optional: if you want to handle file name separately
     } = req.body;
-
-    const result = await cloudinary.uploader.upload(req.file.path, {
-      resource_type: 'raw', // Ensure resource type is set correctly
-      folder: 'vectors'
-    });
-
-    console.log('Cloudinary upload result:', result);
 
     const newVector = new Vector({
       userId: req.user.id,
       title,
       description,
-      fileName: req.file.originalname,
-      fileUrl: result.secure_url,
+      fileName: fileName || '', // If fileName is not sent, use empty string or handle as needed
+      fileUrl, // Save the secure_url to MongoDB
       category,
       subcategory,
       culture,
@@ -160,11 +148,39 @@ router.post('/upload-vector', ensureAuthenticated, upload.single('vector'), asyn
       status: 'pending'
     });
 
-    await newVector.save();
-    console.log('Vector saved to database:', newVector);
-    res.status(201).json({ message: 'Vector uploaded successfully', vector: newVector });
+    const savedVector = await newVector.save();
+
+    // Update user's vectors array
+    await User.findByIdAndUpdate(req.user.id, { $push: { vectors: savedVector._id } });
+
+    console.log('Vector saved to database:', savedVector);
+    res.status(201).json({ message: 'Vector uploaded successfully', vector: savedVector });
   } catch (err) {
     console.error('Error during file upload:', err.message);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+
+
+// Get vectors for authenticated user
+router.get('/user-vectors', ensureAuthenticated, async (req, res) => {
+  try {
+    const vectors = await Vector.find({ userId: req.user.id });
+    res.status(200).json(vectors);
+  } catch (err) {
+    console.error('Error fetching user vectors:', err.message);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// Get all vectors
+router.get('/all-vectors', async (req, res) => {
+  try {
+    const vectors = await Vector.find();
+    res.status(200).json(vectors);
+  } catch (err) {
+    console.error('Error fetching all vectors:', err.message);
     res.status(500).json({ error: 'Server error' });
   }
 });

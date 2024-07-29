@@ -9,22 +9,18 @@ const VectorSchema = new Schema({
   },
   title: {
     type: String,
-    required: true,
   },
   description: {
     type: String,
   },
   fileName: {
     type: String,
-    required: true,
   },
   fileUrl: {
     type: String,
-    required: true,
   },
   category: {
     type: String,
-    required: true,
   },
   subcategory: {
     type: String,
@@ -37,7 +33,6 @@ const VectorSchema = new Schema({
   },
   fileFormat: {
     type: String,
-    required: true,
   },
   fileSize: {
     type: String,
@@ -53,11 +48,9 @@ const VectorSchema = new Schema({
   },
   author: {
     type: String,
-    required: true,
   },
   license: {
     type: String,
-    required: true,
   },
   usageScenarios: {
     type: String,

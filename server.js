@@ -1,3 +1,4 @@
+// server.js or app.js
 const express = require('express');
 const mongoose = require('mongoose');
 const passport = require('passport');
@@ -9,6 +10,10 @@ const authRoutes = require('./routes/auth');
 const appRoutes = require('./routes/app');
 
 dotenv.config();
+
+// Initialize Passport strategies
+require('./config/passport-google')(passport);
+require('./config/passport-local')(passport);
 
 const app = express();
 
