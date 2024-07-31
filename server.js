@@ -25,7 +25,11 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Allowed origins
-const allowedOrigins = ['http://localhost:8000', 'http://vector-collection-backend.vercel.app','https://glowing-sherbet-2fba6c.netlify.app'];
+const allowedOrigins = [
+  'http://localhost:8000',
+  'https://main--glowing-sherbet-2fba6c.netlify.app', 
+  'http://vector-collection-backend.vercel.app',
+  'https://glowing-sherbet-2fba6c.netlify.app'];
 
 // CORS Middleware
 app.use(cors({
