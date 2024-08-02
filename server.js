@@ -1,4 +1,3 @@
-// server.js or app.js
 const express = require('express');
 const mongoose = require('mongoose');
 const passport = require('passport');
@@ -29,12 +28,13 @@ const allowedOrigins = [
   'http://localhost:8000',
   'https://main--glowing-sherbet-2fba6c.netlify.app', 
   'http://vector-collection-backend.vercel.app',
-  'https://glowing-sherbet-2fba6c.netlify.app'];
+  'https://glowing-sherbet-2fba6c.netlify.app'
+];
 
 // CORS Middleware
 app.use(cors({
   origin: function (origin, callback) {
-    // allow requests with no origin (like mobile apps, curl requests)
+    // Allow requests with no origin (like mobile apps, curl requests)
     if (!origin) return callback(null, true);
     if (allowedOrigins.indexOf(origin) === -1) {
       const msg = 'The CORS policy for this site does not allow access from the specified Origin.';
@@ -43,6 +43,19 @@ app.use(cors({
     return callback(null, true);
   },
   credentials: true // Allow credentials (cookies, authorization headers, etc.)
+}));
+
+// Handling preflight requests
+app.options('*', cors({
+  origin: function (origin, callback) {
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.indexOf(origin) === -1) {
+      const msg = 'The CORS policy for this site does not allow access from the specified Origin.';
+      return callback(new Error(msg), false);
+    }
+    return callback(null, true);
+  },
+  credentials: true
 }));
 
 // Sessions
