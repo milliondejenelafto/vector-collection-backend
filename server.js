@@ -1,3 +1,4 @@
+// server.js or app.js
 const express = require('express');
 const mongoose = require('mongoose');
 const passport = require('passport');
@@ -26,7 +27,7 @@ app.use(express.urlencoded({ extended: true }));
 // Allowed origins
 const allowedOrigins = [
   'http://localhost:8000',
-  'https://main--glowing-sherbet-2fba6c.netlify.app',
+  'https://main--glowing-sherbet-2fba6c.netlify.app', 
   'http://vector-collection-backend.vercel.app',
   'https://glowing-sherbet-2fba6c.netlify.app'
 ];
@@ -49,7 +50,12 @@ app.use(cors({
 app.use(session({
   secret: process.env.SECRET,
   resave: false,
-  saveUninitialized: true,
+  saveUninitialized: false,
+  cookie: {
+    secure: true, // Set to true if using HTTPS
+    httpOnly: true,
+    sameSite: 'none'
+  }
 }));
 
 // Passport middleware

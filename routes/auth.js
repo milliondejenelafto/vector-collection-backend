@@ -1,3 +1,4 @@
+// auth.js
 const express = require('express');
 const passport = require('passport');
 const bcrypt = require('bcryptjs');
@@ -30,7 +31,7 @@ router.get('/logout', (req, res, next) => {
     if (err) return next(err);
     req.session.destroy(err => {
       if (err) return next(err);
-      res.clearCookie('connect.sid');
+      res.clearCookie('connect.sid', { path: '/' });
       res.status(200).json({ message: 'Logged out successfully' });
     });
   });
