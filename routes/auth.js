@@ -24,7 +24,7 @@ router.use(cors({
 router.get('/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
 router.get('/google/callback', passport.authenticate('google', { failureRedirect: '/' }), (req, res) => {
   console.log('User logged in:', req.user);
-  res.redirect(`https://main--glowing-sherbet-2fba6c.netlify.app`);
+  res.redirect(`https://main--glowing-sherbet-2fba6c.netlify.app?user=${encodeURIComponent(JSON.stringify(req.user))}`);
 });
 
 // Check authentication status
