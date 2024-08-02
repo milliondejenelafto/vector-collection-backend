@@ -29,8 +29,6 @@ app.use(express.urlencoded({ extended: true }));
 const allowedOrigins = [
   'http://localhost:8000',
   'https://main--glowing-sherbet-2fba6c.netlify.app', 
-  'http://vector-collection-backend.vercel.app',
-  'https://glowing-sherbet-2fba6c.netlify.app'
 ];
 
 // CORS Middleware
@@ -55,7 +53,7 @@ app.use(session({
   store: MongoStore.create({ mongoUrl: process.env.MONGO_URI }),
   cookie: {
     secure: false, // Set to true if using HTTP
-    sameSite: 'none'
+    sameSite: 'lax'
   }
 }));
 
