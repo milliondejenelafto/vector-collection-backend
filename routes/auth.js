@@ -4,9 +4,7 @@ const bcrypt = require('bcryptjs');
 const { check, validationResult } = require('express-validator');
 const User = require('../models/User');
 const Vector = require('../models/Vector');
-// Ensure multer middleware is correctly imported
-const { ensureAuthenticated } = require('../middleware/auth'); // Ensure auth middleware is correctly imported
-
+const { ensureAuthenticated } = require('../middleware/auth');
 
 const router = express.Router();
 
@@ -36,6 +34,15 @@ router.get('/logout', (req, res, next) => {
       res.status(200).json({ message: 'Logged out successfully' });
     });
   });
+});
+
+// Handle OPTIONS requests to allow preflight for CORS
+router.options('*', (req, res) => {
+  res.setHeader('Access-Control-Allow-Origin', req.headers.origin);
+  res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
+  res.sendStatus(204);
 });
 
 // Registration
@@ -97,6 +104,7 @@ router.post('/login', [
   })(req, res, next);
 });
 
+// File upload
 router.post('/upload', ensureAuthenticated, async (req, res) => {
   try {
     console.log('File upload initiated.');
@@ -160,8 +168,6 @@ router.post('/upload', ensureAuthenticated, async (req, res) => {
     res.status(500).json({ error: 'Server error' });
   }
 });
-
-
 
 // Get vectors for authenticated user
 router.get('/user-vectors', ensureAuthenticated, async (req, res) => {

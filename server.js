@@ -26,7 +26,7 @@ app.use(express.urlencoded({ extended: true }));
 // Allowed origins
 const allowedOrigins = [
   'http://localhost:8000',
-  'https://main--glowing-sherbet-2fba6c.netlify.app', 
+  'https://main--glowing-sherbet-2fba6c.netlify.app',
   'http://vector-collection-backend.vercel.app',
   'https://glowing-sherbet-2fba6c.netlify.app'
 ];
@@ -34,7 +34,7 @@ const allowedOrigins = [
 // CORS Middleware
 app.use(cors({
   origin: function (origin, callback) {
-    // Allow requests with no origin (like mobile apps, curl requests)
+    // allow requests with no origin (like mobile apps, curl requests)
     if (!origin) return callback(null, true);
     if (allowedOrigins.indexOf(origin) === -1) {
       const msg = 'The CORS policy for this site does not allow access from the specified Origin.';
@@ -43,19 +43,6 @@ app.use(cors({
     return callback(null, true);
   },
   credentials: true // Allow credentials (cookies, authorization headers, etc.)
-}));
-
-// Handling preflight requests
-app.options('*', cors({
-  origin: function (origin, callback) {
-    if (!origin) return callback(null, true);
-    if (allowedOrigins.indexOf(origin) === -1) {
-      const msg = 'The CORS policy for this site does not allow access from the specified Origin.';
-      return callback(new Error(msg), false);
-    }
-    return callback(null, true);
-  },
-  credentials: true
 }));
 
 // Sessions
@@ -71,7 +58,7 @@ app.use(passport.session());
 
 // Routes
 app.use('/auth', authRoutes);
-app.use('/', appRoutes); // Add this line to use the main routes
+app.use('/', appRoutes);
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
