@@ -1,4 +1,4 @@
-// auth.js
+// routes/auth.js
 const express = require('express');
 const passport = require('passport');
 const bcrypt = require('bcryptjs');
@@ -6,8 +6,17 @@ const { check, validationResult } = require('express-validator');
 const User = require('../models/User');
 const Vector = require('../models/Vector');
 const { ensureAuthenticated } = require('../middleware/auth');
+const cors = require('cors');
 
 const router = express.Router();
+
+// CORS Middleware for specific routes
+router.use(cors({
+  origin: 'https://main--glowing-sherbet-2fba6c.netlify.app',
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true
+}));
 
 // Google OAuth
 router.get('/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
@@ -26,22 +35,10 @@ router.get('/check-auth', (req, res) => {
 });
 
 // Logout
-export const logout = async () => {
-  try {
-    const response = await fetch(`${API_URL}/auth/logout`, {
-      method: 'GET',
-      credentials: 'include' // Include cookies for session management
-    });
-    if (response.ok) {
-      localStorage.removeItem('user');
-      navigate('/auth');
-    } else {
-      throw new Error('Failed to logout');
-    }
-  } catch (error) {
-    console.error('Error logging out:', error);
-  }
-};
+router.get('/logout', (req, res) => {
+  req.logout();
+  res.redirect('/');
+});
 
 // Handle OPTIONS requests to allow preflight for CORS
 router.options('*', (req, res) => {
@@ -188,7 +185,7 @@ router.get('/user-vectors', ensureAuthenticated, async (req, res) => {
 });
 
 // Get all vectors
-router.get('/all-vectors', async (req, res) => {
+router.get('/all-vectors', ensureAuthenticated, async (req, res) => {
   try {
     const vectors = await Vector.find();
     res.status(200).json(vectors);
