@@ -13,7 +13,7 @@ const router = express.Router();
 router.get('/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
 router.get('/google/callback', passport.authenticate('google', { failureRedirect: '/' }), (req, res) => {
   console.log('User logged in:', req.user);
-  res.redirect(`https://main--glowing-sherbet-2fba6c.netlify.app?user=${encodeURIComponent(JSON.stringify(req.user))}`);
+  res.redirect(`https://main--glowing-sherbet-2fba6c.netlify.app`);
 });
 
 // Check authentication status
@@ -26,16 +26,22 @@ router.get('/check-auth', (req, res) => {
 });
 
 // Logout
-router.get('/logout', (req, res, next) => {
-  req.logout(err => {
-    if (err) return next(err);
-    req.session.destroy(err => {
-      if (err) return next(err);
-      res.clearCookie('connect.sid', { path: '/' });
-      res.status(200).json({ message: 'Logged out successfully' });
+export const logout = async () => {
+  try {
+    const response = await fetch(`${API_URL}/auth/logout`, {
+      method: 'GET',
+      credentials: 'include' // Include cookies for session management
     });
-  });
-});
+    if (response.ok) {
+      localStorage.removeItem('user');
+      navigate('/auth');
+    } else {
+      throw new Error('Failed to logout');
+    }
+  } catch (error) {
+    console.error('Error logging out:', error);
+  }
+};
 
 // Handle OPTIONS requests to allow preflight for CORS
 router.options('*', (req, res) => {
