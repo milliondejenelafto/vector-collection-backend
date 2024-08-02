@@ -7,6 +7,8 @@ const User = require('../models/User');
 const Vector = require('../models/Vector');
 const { ensureAuthenticated } = require('../middleware/auth');
 const cors = require('cors');
+require('../config/passport-google')(passport);
+require('../config/passport-local')(passport);
 
 const router = express.Router();
 

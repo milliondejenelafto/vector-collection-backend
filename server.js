@@ -1,4 +1,3 @@
-// server.js or app.js
 const express = require('express');
 const mongoose = require('mongoose');
 const passport = require('passport');
@@ -11,7 +10,6 @@ const authRoutes = require('./routes/auth');
 const appRoutes = require('./routes/app');
 
 dotenv.config();
-
 // Initialize Passport strategies
 require('./config/passport-google')(passport);
 require('./config/passport-local')(passport);
@@ -26,10 +24,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Allowed origins
-const allowedOrigins = [
-  'http://localhost:8000',
-  'https://main--glowing-sherbet-2fba6c.netlify.app', 
-];
+const allowedOrigins = ['https://main--glowing-sherbet-2fba6c.netlify.app'];
 
 // CORS Middleware
 app.use(cors({
@@ -49,7 +44,7 @@ app.use(cors({
 app.use(session({
   secret: process.env.SECRET,
   resave: false,
-  saveUninitialized: false,
+  saveUninitialized: true,  
   store: MongoStore.create({ mongoUrl: process.env.MONGO_URI }),
   cookie: {
     maxAge: 1000 * 60 * 60 * 24 * 7 // 1 week
@@ -62,7 +57,7 @@ app.use(passport.session());
 
 // Routes
 app.use('/auth', authRoutes);
-app.use('/', appRoutes);
+app.use('/', appRoutes); // Add this line to use the main routes
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
