@@ -1,4 +1,3 @@
-// routes/auth.js
 const express = require('express');
 const passport = require('passport');
 const bcrypt = require('bcryptjs');
@@ -6,19 +5,17 @@ const { check, validationResult } = require('express-validator');
 const User = require('../models/User');
 const Vector = require('../models/Vector');
 const { ensureAuthenticated } = require('../middleware/auth');
-const cors = require('cors');
-require('../config/passport-google')(passport);
-require('../config/passport-local')(passport);
 
 const router = express.Router();
 
-// CORS Middleware for specific routes
-router.use(cors({
-  origin: 'https://main--glowing-sherbet-2fba6c.netlify.app',
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-  credentials: true
-}));
+// Handle OPTIONS requests to allow preflight for CORS
+router.options('*', (req, res) => {
+  res.setHeader('Access-Control-Allow-Origin', req.headers.origin);
+  res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
+  res.sendStatus(204);
+});
 
 // Google OAuth
 router.get('/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
@@ -26,8 +23,9 @@ router.get('/google/callback', passport.authenticate('google', { failureRedirect
   console.log('User logged in:', req.user);
   res.redirect(`https://main--glowing-sherbet-2fba6c.netlify.app?user=${encodeURIComponent(JSON.stringify(req.user))}`);
 });
+
+// Check authentication status
 router.get('/check-auth', (req, res) => {
-  console.log('User isAuthenticated:', req.isAuthenticated());
   if (req.isAuthenticated()) {
     res.status(200).json({ isAuthenticated: true, user: req.user });
   } else {
@@ -36,17 +34,15 @@ router.get('/check-auth', (req, res) => {
 });
 
 // Logout
-router.get('/logout', (req, res) => {
-  req.logout();
-  res.redirect('/');
-});
-
-// Handle OPTIONS requests to allow preflight for CORS
-router.options('*', (req, res) => {
-  res.setHeader('Access-Control-Allow-Origin', req.headers.origin);
-  res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS');
-  res.setHeader('Access-Control-Allow-Credentials', 'true');
-  res.sendStatus(204);
+router.get('/logout', (req, res, next) => {
+  req.logout(err => {
+    if (err) return next(err);
+    req.session.destroy(err => {
+      if (err) return next(err);
+      res.clearCookie('connect.sid');
+      res.status(200).json({ message: 'Logged out successfully' });
+    });
+  });
 });
 
 // Registration
@@ -185,7 +181,7 @@ router.get('/user-vectors', ensureAuthenticated, async (req, res) => {
 });
 
 // Get all vectors
-router.get('/all-vectors', ensureAuthenticated, async (req, res) => {
+router.get('/all-vectors', async (req, res) => {
   try {
     const vectors = await Vector.find();
     res.status(200).json(vectors);

@@ -27,16 +27,9 @@ app.use(express.urlencoded({ extended: true }));
 const allowedOrigins = ['https://main--glowing-sherbet-2fba6c.netlify.app'];
 
 // CORS Middleware
+
 app.use(cors({
-  origin: function (origin, callback) {
-    // allow requests with no origin (like mobile apps, curl requests)
-    if (!origin) return callback(null, true);
-    if (allowedOrigins.indexOf(origin) === -1) {
-      const msg = 'The CORS policy for this site does not allow access from the specified Origin.';
-      return callback(new Error(msg), false);
-    }
-    return callback(null, true);
-  },
+  origin: allowedOrigins,
   credentials: true // Allow credentials (cookies, authorization headers, etc.)
 }));
 
@@ -45,7 +38,7 @@ app.use(session({
   secret: process.env.SECRET,
   resave: false,
   saveUninitialized: true,  
-  store: MongoStore.create({ mongoUrl: process.env.MONGO_URI }),
+  store: MongoStore.create({ mongoUrl: process.env.MONGO_URI,collectionName: 'sessions' }),
   cookie: {
     maxAge: 1000 * 60 * 60 * 24 * 7 // 1 week
   }
