@@ -3,19 +3,9 @@ const passport = require('passport');
 const bcrypt = require('bcryptjs');
 const { check, validationResult } = require('express-validator');
 const User = require('../models/User');
-const Vector = require('../models/Vector');
 const { ensureAuthenticated } = require('../middleware/auth');
 
 const router = express.Router();
-
-// Handle OPTIONS requests to allow preflight for CORS
-router.options('*', (req, res) => {
-  res.setHeader('Access-Control-Allow-Origin', req.headers.origin);
-  res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  res.setHeader('Access-Control-Allow-Credentials', 'true');
-  res.sendStatus(204);
-});
 
 // Google OAuth
 router.get('/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
