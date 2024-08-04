@@ -54,7 +54,7 @@ router.post('/login', [
     return res.status(400).json({ errors: errors.array() });
   }
 
-  passport.authenticate('local', (err, user, info) => {
+  passport.authenticate('local', {session: false}, (err, user, info) => {
     if (err) return next(err);
     if (!user) {
       return res.status(400).json({ errors: [{ msg: 'Invalid credentials' }] });
@@ -66,9 +66,9 @@ router.post('/login', [
 });
 
 // Google OAuth
-router.get('/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
+router.get('/google', passport.authenticate('google', { scope: ['profile', 'email'], session: false }));
 
-router.get('/google/callback', passport.authenticate('google', { failureRedirect: '/' }), (req, res) => {
+router.get('/google/callback', passport.authenticate('google', { failureRedirect: '/', session: false }), (req, res) => {
   // User has been authenticated, generate a JWT
   const token = generateToken(req.user);
   res.redirect(`https://main--glowing-sherbet-2fba6c.netlify.app?token=${token}`);
