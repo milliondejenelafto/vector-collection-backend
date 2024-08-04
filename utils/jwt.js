@@ -1,15 +1,19 @@
+// utils/jwt.js
 const jwt = require('jsonwebtoken');
-// Replace with your own secret key
+const dotenv = require('dotenv');
 
-exports.generateToken = (user) => {
-  const payload = { id: user.id, username: user.username };
-  return jwt.sign(payload, process.env.SECRET, { expiresIn: '1h' });
+dotenv.config();
+
+const generateToken = (user) => {
+  return jwt.sign({ id: user._id, email: user.email }, process.env.JWT_SECRET, { expiresIn: '1h' });
 };
 
-exports.verifyToken = (token) => {
+const verifyToken = (token) => {
   try {
-    return jwt.verify(token, process.env.SECRET);
+    return jwt.verify(token, process.env.JWT_SECRET);
   } catch (err) {
     return null;
   }
 };
+
+module.exports = { generateToken, verifyToken };
