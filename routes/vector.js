@@ -3,9 +3,16 @@ const express = require('express');
 const User = require('../models/User');
 const Vector = require('../models/Vector');
 const { ensureAuthenticated } = require('../middleware/auth');
-
+const cors = require('cors');
 const router = express.Router();
+// Allowed origins
+const allowedOrigins = ['https://main--glowing-sherbet-2fba6c.netlify.app'];
 
+// CORS Middleware
+app.use(cors({
+  origin: allowedOrigins,
+  credentials: true // Allow credentials (cookies, authorization headers, etc.)
+}));
 // File upload
 router.post('/upload', ensureAuthenticated, async (req, res) => {
   try {
