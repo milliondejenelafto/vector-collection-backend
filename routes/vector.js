@@ -3,19 +3,12 @@ const express = require('express');
 const User = require('../models/User');
 const Vector = require('../models/Vector');
 const { ensureAuthenticated } = require('../middleware/auth');
-const cors = require('cors');
-const router = express.Router();
-// Allowed origins
-const allowedOrigins = ['https://main--glowing-sherbet-2fba6c.netlify.app'];
+const router = express.Router();// File upload
 
-// CORS Middleware
-app.use(cors({
-  origin: allowedOrigins,
-  credentials: true // Allow credentials (cookies, authorization headers, etc.)
-}));
-// File upload
 router.post('/upload', ensureAuthenticated, async (req, res) => {
   try {
+    console.log('File upload initiated.');
+
     const {
       title,
       description,
@@ -63,6 +56,7 @@ router.post('/upload', ensureAuthenticated, async (req, res) => {
     // Update user's vectors array
     await User.findByIdAndUpdate(req.user.id, { $push: { vectors: savedVector._id } });
 
+    console.log('Vector saved to database:', savedVector);
     res.status(201).json({ message: 'Vector uploaded successfully', vector: savedVector });
   } catch (err) {
     console.error('Error during file upload:', err.message);
@@ -82,7 +76,7 @@ router.get('/user-vectors', ensureAuthenticated, async (req, res) => {
 });
 
 // Get all vectors
-router.get('/all-vectors', ensureAuthenticated, async (req, res) => {
+router.get('/all-vectors', async (req, res) => {
   try {
     const vectors = await Vector.find();
     res.status(200).json(vectors);

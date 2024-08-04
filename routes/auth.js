@@ -1,22 +1,12 @@
-// routes/auth.js
 const express = require('express');
-const passport = require('passport');
 const bcrypt = require('bcryptjs');
+const passport = require('passport');
 const { check, validationResult } = require('express-validator');
 const User = require('../models/User');
-const Vector = require('../models/Vector');
 const { generateToken, verifyToken } = require('../utils/jwt');
 const { ensureAuthenticated } = require('../middleware/auth');
-const cors = require('cors');
 const router = express.Router();
-// Allowed origins
-const allowedOrigins = ['https://main--glowing-sherbet-2fba6c.netlify.app'];
 
-// CORS Middleware
-app.use(cors({
-  origin: allowedOrigins,
-  credentials: true // Allow credentials (cookies, authorization headers, etc.)
-}));
 // Registration
 router.post('/register', [
   check('email', 'Please include a valid email').isEmail(),
@@ -58,13 +48,13 @@ router.post('/register', [
 router.post('/login', [
   check('email', 'Please include a valid email').isEmail(),
   check('password', 'Password is required').exists()
-], (req, res, next) => {
+], async (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     return res.status(400).json({ errors: errors.array() });
   }
 
-  passport.authenticate('local', { session: false }, (err, user, info) => {
+  passport.authenticate('local', (err, user, info) => {
     if (err) return next(err);
     if (!user) {
       return res.status(400).json({ errors: [{ msg: 'Invalid credentials' }] });
@@ -76,9 +66,9 @@ router.post('/login', [
 });
 
 // Google OAuth
-router.get('/google', passport.authenticate('google', { scope: ['profile', 'email'], session: false }));
+router.get('/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
 
-router.get('/google/callback', passport.authenticate('google', { failureRedirect: '/', session: false }), (req, res) => {
+router.get('/google/callback', passport.authenticate('google', { failureRedirect: '/' }), (req, res) => {
   // User has been authenticated, generate a JWT
   const token = generateToken(req.user);
   res.redirect(`https://main--glowing-sherbet-2fba6c.netlify.app?token=${token}`);
@@ -101,10 +91,6 @@ router.get('/logout', (req, res) => {
   res.status(200).json({ message: 'Logged out successfully' });
 });
 
-// Logout
-router.get('/user', (req, res) => {
-  res.status(200).json({ message: 'Logged out successfully' });
-});
 
 
 module.exports = router;

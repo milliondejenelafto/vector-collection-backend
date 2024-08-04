@@ -6,8 +6,10 @@ const cors = require('cors');
 const connectDB = require('./config/db');
 const authRoutes = require('./routes/auth');
 const appRoutes = require('./routes/app');
+const { ensureAuthenticated } = require('./middleware/auth');
 
 dotenv.config();
+
 // Initialize Passport strategies
 require('./config/passport-google')(passport);
 require('./config/passport-local')(passport);
@@ -22,11 +24,19 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Allowed origins
-const allowedOrigins = ['https://main--glowing-sherbet-2fba6c.netlify.app'];
+const allowedOrigins = ['https://main--glowing-sherbet-2fba6c.netlify.app', 'http://localhost:8000'];
 
 // CORS Middleware
 app.use(cors({
-  origin: allowedOrigins,
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps, curl requests)
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.indexOf(origin) === -1) {
+      const msg = 'The CORS policy for this site does not allow access from the specified Origin.';
+      return callback(new Error(msg), false);
+    }
+    return callback(null, true);
+  },
   credentials: true // Allow credentials (cookies, authorization headers, etc.)
 }));
 
