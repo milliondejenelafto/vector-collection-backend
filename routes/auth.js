@@ -1,11 +1,12 @@
+// routes/auth.js
 const express = require('express');
-const bcrypt = require('bcryptjs');
 const passport = require('passport');
+const bcrypt = require('bcryptjs');
 const { check, validationResult } = require('express-validator');
 const User = require('../models/User');
+const Vector = require('../models/Vector');
 const { generateToken, verifyToken } = require('../utils/jwt');
 const { ensureAuthenticated } = require('../middleware/auth');
-const Vector = require('../models/Vector'); // Ensure to require Vector model
 
 const router = express.Router();
 
@@ -56,21 +57,21 @@ router.post('/login', [
     return res.status(400).json({ errors: errors.array() });
   }
 
-  passport.authenticate('local', (err, data, info) => {
+  passport.authenticate('local', { session: false }, (err, user, info) => {
     if (err) return next(err);
-    if (!data) {
+    if (!user) {
       return res.status(400).json({ errors: [{ msg: 'Invalid credentials' }] });
     }
 
-    const { user, token } = data;
+    const token = generateToken(user);
     res.json({ msg: 'Logged in successfully', user, token });
   })(req, res, next);
 });
 
 // Google OAuth
-router.get('/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
+router.get('/google', passport.authenticate('google', { scope: ['profile', 'email'], session: false }));
 
-router.get('/google/callback', passport.authenticate('google', { failureRedirect: '/' }), (req, res) => {
+router.get('/google/callback', passport.authenticate('google', { failureRedirect: '/', session: false }), (req, res) => {
   // User has been authenticated, generate a JWT
   const token = generateToken(req.user);
   res.redirect(`https://main--glowing-sherbet-2fba6c.netlify.app?token=${token}`);
