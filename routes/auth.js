@@ -1,39 +1,13 @@
 const express = require('express');
-const passport = require('passport');
 const bcrypt = require('bcryptjs');
+const passport = require('passport');
 const { check, validationResult } = require('express-validator');
 const User = require('../models/User');
+const { generateToken, verifyToken } = require('../utils/jwt');
 const { ensureAuthenticated } = require('../middleware/auth');
+const Vector = require('../models/Vector'); // Ensure to require Vector model
 
 const router = express.Router();
-
-// Google OAuth
-router.get('/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
-router.get('/google/callback', passport.authenticate('google', { failureRedirect: '/' }), (req, res) => {
-  console.log('User logged in:', req.user);
-  res.redirect(`https://main--glowing-sherbet-2fba6c.netlify.app?user=${encodeURIComponent(JSON.stringify(req.user))}`);
-});
-
-// Check authentication status
-router.get('/check-auth', (req, res) => {
-  if (req.isAuthenticated()) {
-    res.status(200).json({ isAuthenticated: true, user: req.user });
-  } else {
-    res.status(401).json({ isAuthenticated: false });
-  }
-});
-
-// Logout
-router.get('/logout', (req, res, next) => {
-  req.logout(err => {
-    if (err) return next(err);
-    req.session.destroy(err => {
-      if (err) return next(err);
-      res.clearCookie('connect.sid');
-      res.status(200).json({ message: 'Logged out successfully' });
-    });
-  });
-});
 
 // Registration
 router.post('/register', [
@@ -82,28 +56,46 @@ router.post('/login', [
     return res.status(400).json({ errors: errors.array() });
   }
 
-  passport.authenticate('local', (err, user, info) => {
+  passport.authenticate('local', (err, data, info) => {
     if (err) return next(err);
-    if (!user) {
+    if (!data) {
       return res.status(400).json({ errors: [{ msg: 'Invalid credentials' }] });
     }
-    req.logIn(user, (err) => {
-      if (err) return next(err);
-      res.json({ msg: 'Logged in successfully', user });
-    });
+
+    const { user, token } = data;
+    res.json({ msg: 'Logged in successfully', user, token });
   })(req, res, next);
+});
+
+// Google OAuth
+router.get('/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
+
+router.get('/google/callback', passport.authenticate('google', { failureRedirect: '/' }), (req, res) => {
+  // User has been authenticated, generate a JWT
+  const token = generateToken(req.user);
+  res.redirect(`https://main--glowing-sherbet-2fba6c.netlify.app?token=${token}`);
+});
+
+// Check authentication status
+router.get('/check-auth', (req, res) => {
+  const token = req.headers['authorization']?.split(' ')[1];
+  if (token) {
+    const decoded = verifyToken(token);
+    if (decoded) {
+      return res.status(200).json({ isAuthenticated: true, user: decoded });
+    }
+  }
+  return res.status(401).json({ isAuthenticated: false });
+});
+
+// Logout
+router.get('/logout', (req, res) => {
+  res.status(200).json({ message: 'Logged out successfully' });
 });
 
 // File upload
 router.post('/upload', ensureAuthenticated, async (req, res) => {
   try {
-    console.log('File upload initiated.');
-
-    if (!req.isAuthenticated()) {
-      console.log('User not authenticated.');
-      return res.status(401).json({ error: 'Unauthorized' });
-    }
-
     const {
       title,
       description,
@@ -151,7 +143,6 @@ router.post('/upload', ensureAuthenticated, async (req, res) => {
     // Update user's vectors array
     await User.findByIdAndUpdate(req.user.id, { $push: { vectors: savedVector._id } });
 
-    console.log('Vector saved to database:', savedVector);
     res.status(201).json({ message: 'Vector uploaded successfully', vector: savedVector });
   } catch (err) {
     console.error('Error during file upload:', err.message);

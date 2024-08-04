@@ -1,7 +1,7 @@
 const LocalStrategy = require('passport-local').Strategy;
 const bcrypt = require('bcryptjs');
-const mongoose = require('mongoose');
 const User = require('../models/User');
+const { generateToken } = require('../utils/jwt');
 
 module.exports = function(passport) {
   passport.use(
@@ -19,19 +19,12 @@ module.exports = function(passport) {
           return done(null, false, { message: 'Incorrect password' });
         }
 
-        return done(null, user);
+        const token = generateToken(user);
+        return done(null, { user, token });
       } catch (err) {
         console.error(err);
         return done(err);
       }
     })
   );
-
-  passport.serializeUser((user, done) => {
-    done(null, user.id);
-  });
-
-  passport.deserializeUser((id, done) => {
-    User.findById(id, (err, user) => done(err, user));
-  });
 };

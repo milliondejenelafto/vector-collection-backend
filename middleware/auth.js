@@ -1,7 +1,17 @@
-module.exports.ensureAuthenticated = (req, res, next) => {
-    if (req.isAuthenticated()) {
+const { verifyToken } = require('../utils/jwt');
+
+function ensureAuthenticated(req, res, next) {
+  const token = req.headers['authorization']?.split(' ')[1];
+  if (token) {
+    const decoded = verifyToken(token);
+    if (decoded) {
+      req.user = decoded;
       return next();
     }
-    res.status(401).json({ error: 'Unauthorized' });
-  };
-  
+  }
+  return res.status(401).json({ error: 'Unauthorized' });
+}
+
+module.exports = {
+  ensureAuthenticated
+};

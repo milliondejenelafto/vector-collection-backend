@@ -1,8 +1,6 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const passport = require('passport');
-const session = require('express-session');
-const MongoStore = require('connect-mongo'); 
 const dotenv = require('dotenv');
 const cors = require('cors');
 const connectDB = require('./config/db');
@@ -27,29 +25,13 @@ app.use(express.urlencoded({ extended: true }));
 const allowedOrigins = ['https://main--glowing-sherbet-2fba6c.netlify.app'];
 
 // CORS Middleware
-
 app.use(cors({
   origin: allowedOrigins,
   credentials: true // Allow credentials (cookies, authorization headers, etc.)
 }));
 
-// Sessions
-app.use(session({
-  secret: process.env.SECRET,
-  resave: false,
-  saveUninitialized: true,  
-  store: MongoStore.create({ mongoUrl: process.env.MONGO_URI,collectionName: 'sessions' }),
-  cookie: {
-    maxAge: 1000 * 60 * 60 * 24 * 7, // 1 week
-    secure: true, // Set to true if using HTTPS
-    httpOnly: true,
-    sameSite: 'none' // Ensure cross-site requests are allowed
-  }
-}));
-
 // Passport middleware
 app.use(passport.initialize());
-app.use(passport.session());
 
 // Routes
 app.use('/auth', authRoutes);
