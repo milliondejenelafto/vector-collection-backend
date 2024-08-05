@@ -71,7 +71,7 @@ router.get('/google', passport.authenticate('google', { scope: ['profile', 'emai
 
 router.get('/google/callback', passport.authenticate('google', { failureRedirect: '/', session: false }), (req, res) => {
   const token = generateToken(req.user);
-  res.cookie('token', token, { httpOnly: true, secure: true, sameSite: 'none', maxAge: 1000 * 60 * 60 * 24 * 7 });
+  res.cookie('token', token, { sameSite: 'none', maxAge: 1000 * 60 * 60 * 24 * 7 });
   res.redirect('https://main--glowing-sherbet-2fba6c.netlify.app');
 });
 
