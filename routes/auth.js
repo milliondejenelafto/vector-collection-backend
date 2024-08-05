@@ -54,14 +54,15 @@ router.post('/login', [
     return res.status(400).json({ errors: errors.array() });
   }
 
-  passport.authenticate('local', {session: false}, (err, user, info) => {
+  passport.authenticate('local', { session: false }, (err, user, info) => {
     if (err) return next(err);
     if (!user) {
       return res.status(400).json({ errors: [{ msg: 'Invalid credentials' }] });
     }
 
     const token = generateToken(user);
-    res.json({ msg: 'Logged in successfully', user, token });
+    res.cookie('token', token, { httpOnly: true, secure: true, sameSite: 'none', maxAge: 1000 * 60 * 60 * 24 * 7 });
+    res.json({ msg: 'Logged in successfully', user });
   })(req, res, next);
 });
 
@@ -69,14 +70,14 @@ router.post('/login', [
 router.get('/google', passport.authenticate('google', { scope: ['profile', 'email'], session: false }));
 
 router.get('/google/callback', passport.authenticate('google', { failureRedirect: '/', session: false }), (req, res) => {
-  // User has been authenticated, generate a JWT
   const token = generateToken(req.user);
-  res.redirect(`https://main--glowing-sherbet-2fba6c.netlify.app?token=${token}`);
+  res.cookie('token', token, { httpOnly: true, secure: true, sameSite: 'none', maxAge: 1000 * 60 * 60 * 24 * 7 });
+  res.redirect('https://main--glowing-sherbet-2fba6c.netlify.app');
 });
 
 // Check authentication status
 router.get('/check-auth', (req, res) => {
-  const token = req.headers['authorization']?.split(' ')[1];
+  const token = req.cookies.token;
   if (token) {
     const decoded = verifyToken(token);
     if (decoded) {
@@ -88,24 +89,18 @@ router.get('/check-auth', (req, res) => {
 
 // Logout
 router.get('/logout', (req, res) => {
+  res.clearCookie('token', { httpOnly: true, secure: true, sameSite: 'none' });
   res.status(200).json({ message: 'Logged out successfully' });
 });
 
 // Get user profile
 router.get('/user', ensureAuthenticated, async (req, res) => {
   try {
-    const user = await User.findById(req.user.id);
-    if (!user) {
-      return res.status(404).json({ msg: 'User not found' });
-    }
+    const user = await User.findById(req.user.id).populate('profile');
     res.status(200).json(user);
   } catch (err) {
-    console.error(err.message);
     res.status(500).json({ error: 'Server error' });
   }
 });
-
-
-
 
 module.exports = router;
