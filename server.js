@@ -6,7 +6,7 @@ const cors = require('cors');
 const connectDB = require('./config/db');
 const authRoutes = require('./routes/auth');
 const appRoutes = require('./routes/app');
-const { ensureAuthenticated } = require('./middleware/auth');
+const cookieParser = require('cookie-parser'); // Import cookie-parser
 
 dotenv.config();
 
@@ -22,6 +22,7 @@ connectDB();
 // Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser()); // Use cookie-parser middleware
 
 // Allowed origins
 const allowedOrigins = ['https://main--glowing-sherbet-2fba6c.netlify.app', 'http://localhost:8000'];

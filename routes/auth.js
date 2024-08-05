@@ -98,7 +98,7 @@ router.get('/user', ensureAuthenticated, async (req, res) => {
     if (!user) {
       return res.status(404).json({ msg: 'User not found' });
     }
-    res.json(user);
+    res.status(200).json(user);
   } catch (err) {
     console.error(err.message);
     res.status(500).json({ error: 'Server error' });
