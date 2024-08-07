@@ -6,6 +6,7 @@ const cors = require('cors');
 const connectDB = require('./config/db');
 const authRoutes = require('./routes/auth');
 const appRoutes = require('./routes/app');
+const vectorRoutes = require('./routes/vector')
 const cookieParser = require('cookie-parser'); // Import cookie-parser
 
 dotenv.config();
@@ -45,6 +46,7 @@ app.use(cors({
 app.use(passport.initialize());
 
 // Routes
+app.use('/vector', vectorRoutes);
 app.use('/auth', authRoutes);
 app.use('/', appRoutes); // Add this line to use the main routes
 

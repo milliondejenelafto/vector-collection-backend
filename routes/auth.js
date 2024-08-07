@@ -3,6 +3,7 @@ const bcrypt = require('bcryptjs');
 const passport = require('passport');
 const { check, validationResult } = require('express-validator');
 const User = require('../models/User');
+const Vector = require('../models/Vector');
 const { generateToken, verifyToken } = require('../utils/jwt');
 const { ensureAuthenticated } = require('../middleware/auth');
 const router = express.Router();
@@ -61,6 +62,7 @@ router.post('/login', [
     }
 
     const token = generateToken(user);
+    console.log('Generated Token:', token);
     res.cookie('token', token, { httpOnly: true, secure: true, sameSite: 'none', maxAge: 1000 * 60 * 60 * 24 * 7 });
     res.json({ msg: 'Logged in successfully', user });
   })(req, res, next);
@@ -71,8 +73,9 @@ router.get('/google', passport.authenticate('google', { scope: ['profile', 'emai
 
 router.get('/google/callback', passport.authenticate('google', { failureRedirect: '/', session: false }), (req, res) => {
   const token = generateToken(req.user);
-  res.cookie('token', token, { sameSite: 'none', maxAge: 1000 * 60 * 60 * 24 * 7 });
-  res.redirect('https://main--glowing-sherbet-2fba6c.netlify.app');
+  console.log('Generated Token for Google:', token);
+  res.cookie('token', token, { httpOnly: true, secure: true, sameSite: 'none', maxAge: 1000 * 60 * 60 * 24 * 7 });
+  res.redirect('http://localhost:8000');
 });
 
 // Check authentication status
@@ -81,6 +84,7 @@ router.get('/check-auth', (req, res) => {
   if (token) {
     const decoded = verifyToken(token);
     if (decoded) {
+      console.log('Decoded Token:', decoded);
       return res.status(200).json({ isAuthenticated: true, user: decoded });
     }
   }
@@ -96,11 +100,16 @@ router.get('/logout', (req, res) => {
 // Get user profile
 router.get('/user', ensureAuthenticated, async (req, res) => {
   try {
-    const user = await User.findById(req.user.id).populate('profile');
+    console.log('User ID:', req.user.id);
+    const user = await User.findById(req.user.id);
+    if (!user) {
+      return res.status(404).json({ error: 'User Not Found' });
+    }
     res.status(200).json(user);
   } catch (err) {
-    res.status(500).json({ error: 'Server error' });
+    res.status(500).json({ error: 'Server Error' });
   }
 });
+
 
 module.exports = router;

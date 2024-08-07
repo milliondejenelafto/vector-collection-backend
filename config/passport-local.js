@@ -1,7 +1,6 @@
 const LocalStrategy = require('passport-local').Strategy;
 const bcrypt = require('bcryptjs');
 const User = require('../models/User');
-const { generateToken } = require('../utils/jwt');
 
 module.exports = function(passport) {
   passport.use(
@@ -19,8 +18,7 @@ module.exports = function(passport) {
           return done(null, false, { message: 'Incorrect password' });
         }
 
-        const token = generateToken(user);
-        return done(null, { user, token });
+        return done(null, user);
       } catch (err) {
         console.error(err);
         return done(err);

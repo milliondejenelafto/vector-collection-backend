@@ -64,14 +64,13 @@ router.post('/upload', ensureAuthenticated, async (req, res) => {
   }
 });
 
-// Get vectors for authenticated user
-router.get('/user-vectors', ensureAuthenticated, async (req, res) => {
+// Get user vectors
+router.get('/uservectors', ensureAuthenticated, async (req, res) => {
   try {
     const vectors = await Vector.find({ userId: req.user.id });
     res.status(200).json(vectors);
   } catch (err) {
-    console.error('Error fetching user vectors:', err.message);
-    res.status(500).json({ error: 'Server error' });
+    res.status(500).json({ error: 'Server Error' });
   }
 });
 

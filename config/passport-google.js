@@ -1,7 +1,6 @@
 const GoogleStrategy = require('passport-google-oauth20').Strategy;
 const mongoose = require('mongoose');
 const User = require('../models/User');
-const { generateToken } = require('../utils/jwt');
 
 module.exports = function(passport) {
   passport.use(new GoogleStrategy({
@@ -20,13 +19,9 @@ module.exports = function(passport) {
       let user = await User.findOne({ googleId: profile.id });
 
       if (user) {
-        const jwtToken = generateToken(user);
-        user.token = jwtToken; // Assign the JWT token
         return done(null, user);
       } else {
         user = await User.create(newUser);
-        const jwtToken = generateToken(user);
-        user.token = jwtToken; // Assign the JWT token
         return done(null, user);
       }
     } catch (err) {
