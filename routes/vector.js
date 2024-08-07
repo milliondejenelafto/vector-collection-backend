@@ -65,7 +65,7 @@ router.post('/upload', ensureAuthenticated, async (req, res) => {
 });
 
 // Get user vectors
-router.get('/uservectors', ensureAuthenticated, async (req, res) => {
+router.get('/user-vectors', ensureAuthenticated, async (req, res) => {
   try {
     const vectors = await Vector.find({ userId: req.user.id });
     res.status(200).json(vectors);
